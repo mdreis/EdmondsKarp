@@ -52,8 +52,26 @@
 # }
 
 import sys
+import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
+
+def draw_graph(graph):
+    pos = nx.spring_layout(graph)
+    plt.figure()
+    nx.draw(
+        graph, pos, arrows=True, edge_color='black', width=1,
+        linewidths=1, node_size=500, node_color='lightblue', alpha=0.9,
+        arrowstyle='-|>', arrowsize=12,
+        labels={node: node for node in graph.nodes()}
+    )
+    nx.draw_networkx_edge_labels(
+        graph, pos,
+        edge_labels=nx.get_edge_attributes(graph,'weight'),
+        font_color='royalblue'
+    )
+    plt.axis('off')
+    plt.show()
 
 if __name__ == '__main__':
     adj = np.loadtxt(sys.argv[1]) # Read adjacency matrix into NumPy matrix
@@ -64,4 +82,5 @@ if __name__ == '__main__':
         for y in range(adj_cols):
             if adj[x][y] != 0:
                 graph.add_edge(x, y, weight=adj[x][y]) # Add edges and weights
-    nx.draw(graph)
+    draw_graph(graph)
+    # plt.pause(0.5)
