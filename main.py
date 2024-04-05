@@ -103,7 +103,7 @@ def update(num):
 
 if __name__ == '__main__':
     if len(sys.argv) != 3: # Exit and print error message if number of arguments provided != 3
-        sys.exit('Error: not enough command-line arguments\nUsage: python main.py [adjacency matrix] [capacity matrix]')
+        sys.exit('Error: not enough command-line arguments\nUsage: python main.py [flow matrix] [capacity matrix]')
 
     graph = nx.DiGraph()
     adj = np.loadtxt(sys.argv[1]) # Adjacency matrix is read from first runtime argument
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     (adj_rows, adj_cols) = adj.shape # Get number of rows and columns (should be the same)
 
     if adj.shape != cap.shape: # Exit and print error message if adjacency matrix and capacity matrix are not the same dimensions
-        sys.exit('Error: adjacency matrix and capacity matrix must be the same size')
+        sys.exit('Error: flow matrix and capacity matrix must be the same size')
     elif adj_rows != adj_cols: # Exit and print error message if adjacency matrix and capacity matrix are not square
         sys.exit('Error: matrices must be square')
 

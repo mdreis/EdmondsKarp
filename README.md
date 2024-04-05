@@ -9,9 +9,9 @@ Preliminary work done on animating graph using the update function
 
 ## To run
 ```
-python main.py matrix.adj matrix.cap
+python main.py matrix.flow matrix.cap
 ```
-matrix.adj files contain an adjacency matrix with weights representing the edge's flow \
+matrix.flow files contain an adjacency matrix with weights representing the edge's current flow \
 matrix.cap files contain a matching adjacency matrix with weights representing the edge's capacity
 
 ### Dependencies
