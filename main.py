@@ -52,35 +52,78 @@
 # }
 
 import sys
+import matplotlib.animation
 import matplotlib.pyplot as plt
-import numpy as np
+import my_networkx as my_nx
 import networkx as nx
+import numpy as np
 
-def draw_graph(graph):
-    pos = nx.spring_layout(graph)
-    plt.figure()
-    nx.draw(
-        graph, pos, arrows=True, edge_color='black', width=1,
-        linewidths=1, node_size=500, node_color='lightblue', alpha=0.9,
-        arrowstyle='-|>', arrowsize=12,
-        labels={node: node for node in graph.nodes()}
-    )
-    nx.draw_networkx_edge_labels(
-        graph, pos,
-        edge_labels=nx.get_edge_attributes(graph,'weight'),
-        font_color='royalblue'
-    )
-    plt.axis('off')
-    plt.show()
+current_step = 1
+path = [(0, 'Step 0: Start')] # List of tuples (node, title), necessary for generating animation
+
+def bfs(source, sink, parent):
+    return 0
+
+def max_flow(source, sink):
+    global current_step
+    global path
+    flow = 0
+
+    current_step += 1
+    path.append((1, f'Step {current_step}: End'))
+    return flow
+
+# Initializes Matplotlib animation
+def init():
+    ax.clear() # Clear previous frame
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+# Generates next frame of Matplotlib animation
+#   - num: frame number being generated
+def update(num):
+    ax.clear() # Clear previous frame
+    ax.set_title(path[num][1], fontweight="bold") # Set title according to corresponding path tuple
+
+    nx.draw_networkx_nodes(graph, pos=pos, nodelist=graph.nodes(), node_color="white", edgecolors="black", ax=ax)
+    nx.draw_networkx_labels(graph, pos=pos, labels=dict(zip(graph.nodes(), graph.nodes())), font_color="black")
+
+    curved_edges = [edge for edge in graph.edges() if reversed(edge) in graph.edges()] # Get list of edges with reversed counterpart
+    arc_rad = 0.1
+    nx.draw_networkx_edges(graph, pos=pos, ax=ax, edgelist=curved_edges, connectionstyle=f'arc3, rad = {arc_rad}', edge_color="gray") 
+    straight_edges = list(set(graph.edges()) - set(curved_edges)) # Get list of edges without reversed counterpart
+    nx.draw_networkx_edges(graph, pos=pos, ax=ax, edgelist=straight_edges, edge_color="gray")
+
+    edge_flows = nx.get_edge_attributes(graph, 'flow')
+    edge_capacities = nx.get_edge_attributes(graph, 'capacity')
+    curved_edge_labels = {edge: f'{edge_flows[edge]} / {edge_capacities[edge]}' for edge in curved_edges} # Create list of labels for curved edges
+    my_nx.my_draw_networkx_edge_labels(graph, pos=pos, ax=ax, edge_labels=curved_edge_labels, rotate=True, rad=arc_rad, font_color="gray") # Use custom function to draw curved labels
+    straight_edge_labels = {edge: f'{edge_flows[edge]} / {edge_capacities[edge]}' for edge in straight_edges} # Create list of labels for straight edges
+    nx.draw_networkx_edge_labels(graph, pos=pos, ax=ax, edge_labels=straight_edge_labels, rotate=True, font_color="gray")
 
 if __name__ == '__main__':
-    adj = np.loadtxt(sys.argv[1]) # Read adjacency matrix into NumPy matrix
+    if len(sys.argv) != 3: # Exit and print error message if number of arguments provided != 3
+        sys.exit('Error: not enough command-line arguments\nUsage: python main.py [adjacency matrix] [capacity matrix]')
+
+    graph = nx.DiGraph()
+    adj = np.loadtxt(sys.argv[1]) # Adjacency matrix is read from first runtime argument
+    cap = np.loadtxt(sys.argv[2]) # Capacity matrix is read from second runtime argument
     (adj_rows, adj_cols) = adj.shape # Get number of rows and columns (should be the same)
-    graph = nx.Graph()
+
+    if adj.shape != cap.shape: # Exit and print error message if adjacency matrix and capacity matrix are not the same dimensions
+        sys.exit('Error: adjacency matrix and capacity matrix must be the same size')
+    elif adj_rows != adj_cols: # Exit and print error message if adjacency matrix and capacity matrix are not square
+        sys.exit('Error: matrices must be square')
+
     graph.add_nodes_from(range(adj_rows)) # Add nodes
     for x in range(adj_rows):
         for y in range(adj_cols):
             if adj[x][y] != 0:
-                graph.add_edge(x, y, weight=adj[x][y]) # Add edges and weights
-    draw_graph(graph)
-    # plt.pause(0.5)
+                graph.add_edge(x, y, flow=int(adj[x][y]), capacity=int(cap[x][y])) # Add edges, flows, and capacities
+    pos = nx.planar_layout(graph) # Planar layout = minimized edge overlap
+
+    max_flow = max_flow(0, graph.number_of_nodes() - 1) # Calculate max flow (first node is always sink, last node is always target)
+
+    fig, ax = plt.subplots(figsize=(6, 4)) # Build plot
+    ani = matplotlib.animation.FuncAnimation(fig, update, frames=len(path), init_func=init, interval=1000, repeat=True) # Generate animation
+    plt.show()
