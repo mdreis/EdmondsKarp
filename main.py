@@ -101,7 +101,8 @@ def update(num):
     straight_edge_labels = {edge: f'{edge_flows[edge]} / {edge_capacities[edge]}' for edge in straight_edges} # Create list of labels for straight edges
     nx.draw_networkx_edge_labels(graph, pos=pos, ax=ax, edge_labels=straight_edge_labels, rotate=True, font_color="gray")
 
-if __name__ == '__main__':
+# Main Function to be executed if this program is run directly
+def main():
     if len(sys.argv) != 3: # Exit and print error message if number of arguments provided != 3
         sys.exit('Error: not enough command-line arguments\nUsage: python main.py [flow matrix] [capacity matrix]')
 
@@ -128,3 +129,6 @@ if __name__ == '__main__':
     ani = matplotlib.animation.FuncAnimation(fig, update, frames=len(path), init_func=init, interval=1000, repeat=True) # Generate animation
     plt.show()
 
+# Run the main function as an entry point if this program is the top level program executed
+if __name__ == '__main__':
+    main()
