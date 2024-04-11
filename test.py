@@ -61,16 +61,48 @@ import numpy as np
 current_step = 1
 path = [(0, 'Step 0: Start')] # List of tuples (node, title), necessary for generating animation
 
-def bfs(source, sink, parent):
+def bfs(source, sink):
+    global current_step
+    global path
+    path.append((1, f'Step {current_step}: Start'))
+    current_step += 1
+
+    parent = [-1] * graph.number_of_nodes()  # Initialize parent list with -1
+    parent[source] = -2  # Set parent of source node to -2
+    q = [(source, float('inf'))]  # Initialize queue with source node and infinite flow
+
+    while q:
+        cur, flow = q.pop(0)  # Get current node and flow from front of queue
+        path.append((cur, f'Step {current_step}: Current node is {cur} with flow {flow}'))  # Append current node to path
+        current_step += 1
+
+        for next in graph.neighbors(cur):  # Iterate through neighbors of current node
+            if parent[next] == -1 and graph.edges[cur, next]['capacity'] - graph.edges[cur, next]['flow'] > 0:  # If next node has not been visited and there is available capacity
+                parent[next] = cur  # Set parent of next node to current node
+                new_flow = min(flow, graph.edges[cur, next]['capacity'] - graph.edges[cur, next]['flow'])  # Calculate new flow
+                if next == sink:  # If next node is sink
+                    path.append((next, f'Step {current_step}: Found sink'))  # Append sink to path
+                    current_step += 1
+                    return new_flow  # Return new flow
+                q.append((next, new_flow))  # Append next node and new flow to queue
+
     return 0
+
 
 def max_flow(source, sink):
     global current_step
     global path
     flow = 0
 
-    current_step += 1
-    path.append((1, f'Step {current_step}: End'))
+    while new_flow := bfs(source, sink):  # While there is a new flow
+        flow += new_flow  # Add new flow to total flow
+        cur = sink  # Set current node to sink
+        while cur != source:  # While current node is not source
+            prev = parent = graph.edges[cur, parent]['source']  # Get parent of current node
+            graph.edges[prev, cur]['flow'] += new_flow  # Add new flow to flow of edge from parent to current node
+            graph.edges[cur, prev]['flow'] -= new_flow  # Subtract new flow from flow of edge from current to parent node
+            cur = prev  # Set current node to parent node
+
     return flow
 
 # Initializes Matplotlib animation
@@ -122,9 +154,10 @@ if __name__ == '__main__':
                 graph.add_edge(x, y, flow=int(adj[x][y]), capacity=int(cap[x][y])) # Add edges, flows, and capacities
     pos = nx.planar_layout(graph) # Planar layout = minimized edge overlap
 
-    max_flow = max_flow(0, graph.number_of_nodes() - 1) # Calculate max flow (first node is always sink, last node is always target)
+    max_flow(0, 5) # Calculate max flow from source 0 to sink 5
 
     fig, ax = plt.subplots(figsize=(6, 4)) # Build plot
     ani = matplotlib.animation.FuncAnimation(fig, update, frames=len(path), init_func=init, interval=1000, repeat=True) # Generate animation
     plt.show()
+
 
