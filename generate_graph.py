@@ -3,7 +3,7 @@ import random
 import numpy as np
 
 if len(sys.argv) != 3:
-    sys.exit('Error: wrong number of command-line arguments\nUsage: python generate_graph.py [number of nodes] [name of files]\n')
+    sys.exit('Error: wrong number of command-line arguments\nUsage: python generate_graph.py [number of nodes] [name of files]')
 else:
     n = int(sys.argv[1])
     flow_path = f'test/{sys.argv[2]}.flow'
