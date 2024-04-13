@@ -61,50 +61,66 @@ import numpy as np
 current_step = 1
 path = [(0, 'Step 0: Start')] # List of tuples (node, title), necessary for generating animation
 
-def bfs(source, sink):
+def create_graph(cap_matrix, flow_matrix):
+    n = len(cap_matrix)
+    graph = nx.DiGraph()
+    for i in range(n):
+        for j in range(n):
+            if cap_matrix[i][j] > 0:
+                graph.add_edge(i, j, capacity=cap_matrix[i][j], flow=flow_matrix[i][j])
+                if not graph.has_edge(j, i):
+                    graph.add_edge(j, i, capacity=0, flow=0)
+    return graph
+
+def bfs(graph, source, sink, parent):
+    visited = [False] * len(graph.nodes)
+    queue = [source]
+    visited[source] = True
+    
+    while queue:
+        u = queue.pop(0)
+        
+        for v in graph.neighbors(u):
+            residual_capacity = graph[u][v]['capacity'] - graph[u][v]['flow']
+            if not visited[v] and residual_capacity > 0:
+                queue.append(v)
+                visited[v] = True
+                parent[v] = u
+                if v == sink:
+                    return True
+    return False
+
+# Function to calculate the maximum flow using Edmonds-Karp algorithm (BFS based)
+def edmonds_karp(graph, source, sink):
+    #make sure to also update the global variables current_step and path
     global current_step
     global path
-    path.append((1, f'Step {current_step}: Start'))
-    current_step += 1
+    max_flow = 0
+    parent = [-1] * len(graph.nodes)
 
-    parent = [-1] * graph.number_of_nodes()  # Initialize parent list with -1
-    parent[source] = -2  # Set parent of source node to -2
-    q = [(source, float('inf'))]  # Initialize queue with source node and infinite flow
-
-    while q:
-        cur, flow = q.pop(0)  # Get current node and flow from front of queue
-        path.append((cur, f'Step {current_step}: Current node is {cur} with flow {flow}'))  # Append current node to path
+    while bfs(graph, source, sink, parent):
+        path.append((sink, f'Step {current_step}: Found sink'))
+        current_step += 1
+        path.append((sink, f'Step {current_step}: Augmenting path found'))
         current_step += 1
 
-        for next in graph.neighbors(cur):  # Iterate through neighbors of current node
-            if parent[next] == -1 and graph.edges[cur, next]['capacity'] - graph.edges[cur, next]['flow'] > 0:  # If next node has not been visited and there is available capacity
-                parent[next] = cur  # Set parent of next node to current node
-                new_flow = min(flow, graph.edges[cur, next]['capacity'] - graph.edges[cur, next]['flow'])  # Calculate new flow
-                if next == sink:  # If next node is sink
-                    path.append((next, f'Step {current_step}: Found sink'))  # Append sink to path
-                    current_step += 1
-                    return new_flow  # Return new flow
-                q.append((next, new_flow))  # Append next node and new flow to queue
+        path_flow = float('inf')
+        s = sink
+        while s != source:
+            path_flow = min(path_flow, graph[parent[s]][s]['capacity'] - graph[parent[s]][s]['flow'])
+            s = parent[s]
 
-    return 0
+        max_flow += path_flow
+        v = sink
+        while v != source:
+            u = parent[v]
+            graph[u][v]['flow'] += path_flow
+            graph[v][u]['flow'] -= path_flow
+            v = u
 
+    return max_flow
 
-def max_flow(source, sink):
-    global current_step
-    global path
-    flow = 0
-
-    while new_flow := bfs(source, sink):  # While there is a new flow
-        flow += new_flow  # Add new flow to total flow
-        cur = sink  # Set current node to sink
-        while cur != source:  # While current node is not source
-            prev = parent = graph.edges[cur, parent]['source']  # Get parent of current node
-            graph.edges[prev, cur]['flow'] += new_flow  # Add new flow to flow of edge from parent to current node
-            graph.edges[cur, prev]['flow'] -= new_flow  # Subtract new flow from flow of edge from current to parent node
-            cur = prev  # Set current node to parent node
-
-    return flow
-
+    
 # Initializes Matplotlib animation
 def init():
     ax.clear() # Clear previous frame
@@ -133,6 +149,8 @@ def update(num):
     straight_edge_labels = {edge: f'{edge_flows[edge]} / {edge_capacities[edge]}' for edge in straight_edges} # Create list of labels for straight edges
     nx.draw_networkx_edge_labels(graph, pos=pos, ax=ax, edge_labels=straight_edge_labels, rotate=True, font_color="gray")
 
+
+
 if __name__ == '__main__':
     if len(sys.argv) != 3: # Exit and print error message if number of arguments provided != 3
         sys.exit('Error: not enough command-line arguments\nUsage: python main.py [flow matrix] [capacity matrix]')
@@ -147,17 +165,27 @@ if __name__ == '__main__':
     elif adj_rows != adj_cols: # Exit and print error message if adjacency matrix and capacity matrix are not square
         sys.exit('Error: matrices must be square')
 
-    graph.add_nodes_from(range(adj_rows)) # Add nodes
-    for x in range(adj_rows):
-        for y in range(adj_cols):
-            if adj[x][y] != 0:
-                graph.add_edge(x, y, flow=int(adj[x][y]), capacity=int(cap[x][y])) # Add edges, flows, and capacities
-    pos = nx.planar_layout(graph) # Planar layout = minimized edge overlap
+    graph = create_graph(cap, adj)
+    pos = nx.spring_layout(graph) # Set node positions for graph visualization
 
-    max_flow(0, 5) # Calculate max flow from source 0 to sink 5
+    source = 0
+    sink = len(graph.nodes) - 1
+    max_flow_value = edmonds_karp(graph, source, sink)
 
-    fig, ax = plt.subplots(figsize=(6, 4)) # Build plot
-    ani = matplotlib.animation.FuncAnimation(fig, update, frames=len(path), init_func=init, interval=1000, repeat=True) # Generate animation
+    # Create Matplotlib animation
+    fig, ax = plt.subplots()
+    ani = matplotlib.animation.FuncAnimation(fig, update, frames=range(len(path)), init_func=init, repeat=False)
     plt.show()
 
+
+
+
+
+    #print to terminal
+    print("Flow matrix:")
+    print(adj)
+    print("Capacity matrix:")
+    print(cap)
+    print("Max flow:")
+    print(max_flow_value)
 
