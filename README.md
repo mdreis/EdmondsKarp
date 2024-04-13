@@ -9,10 +9,20 @@ Preliminary work done on animating graph using the update function
 
 ## To run
 ```
-python main.py matrix.flow matrix.cap
+python main.py [flow matrix] [capacity matrix]
 ```
-matrix.flow files contain an adjacency matrix with weights representing the edge's current flow \
-matrix.cap files contain a matching adjacency matrix with weights representing the edge's capacity
+Flow matrix files contain an adjacency matrix with weights representing the edge's current flow \
+Capacity files contain a matching adjacency matrix with weights representing the edge's capacity
+
+## Generating graphs
+Graphs can be generated using the included graph generator script:
+```
+python generate_graph.py [number of nodes] [name of files]
+```
+Created graphs are placed in the test subfolder. Example usage of the graph generator script to generate a graph with 12 nodes:
+```
+python generate_graph.py 12 Size12
+```
 
 ### Dependencies
 ```
