@@ -12,7 +12,7 @@ Preliminary work done on animating graph using the update function
 python main.py [flow matrix] [capacity matrix]
 ```
 Flow matrix files contain an adjacency matrix with weights representing the edge's current flow \
-Capacity files contain a matching adjacency matrix with weights representing the edge's capacity
+Capacity matrix files contain a matching adjacency matrix with weights representing the edge's capacity
 
 ## Generating graphs
 Graphs can be generated using the included graph generator script:
