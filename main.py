@@ -121,7 +121,10 @@ def main():
         for y in range(adj_cols):
             if adj[x][y] != 0:
                 graph.add_edge(x, y, flow=int(adj[x][y]), capacity=int(cap[x][y])) # Add edges, flows, and capacities
-    pos = nx.planar_layout(graph) # Planar layout = minimized edge overlap
+    try:
+        pos = nx.planar_layout(graph) # Planar layout = minimized edge overlap
+    except nx.NetworkXException:
+        pos = nx.spring_layout(graph) # If unable to use planar layout, use spring layout
 
     max_flow = max_flow(0, graph.number_of_nodes() - 1) # Calculate max flow (first node is always sink, last node is always target)
 
