@@ -135,10 +135,12 @@ def update(num):
     nx.draw_networkx_nodes(graph, pos=pos, nodelist=graph.nodes(), node_color="white", edgecolors="black", ax=ax)
     nx.draw_networkx_labels(graph, pos=pos, labels=dict(zip(graph.nodes(), graph.nodes())), font_color="black")
 
-    curved_edges = [edge for edge in graph.edges() if (reversed(edge) in graph.edges())] # Get list of edges with reversed counterpart
+    non_zero_capacity_edges = [(u, v) for u, v, d in graph.edges(data=True) if d['capacity'] != 0]
+    curved_edges = [(v, u) for u, v in non_zero_capacity_edges if (v, u) in non_zero_capacity_edges]
+ # Get list of edges with reversed counterpart
     arc_rad = 0.1
     nx.draw_networkx_edges(graph, pos=pos, ax=ax, edgelist=curved_edges, connectionstyle=f'arc3, rad = {arc_rad}', edge_color="gray") 
-    straight_edges = list(set(graph.edges()) - set(curved_edges)) # Get list of edges without reversed counterpart
+    straight_edges = list(set(non_zero_capacity_edges) - set(curved_edges)) # Get list of edges without reversed counterpart
     nx.draw_networkx_edges(graph, pos=pos, ax=ax, edgelist=straight_edges, edge_color="gray")
 
     edge_flows = nx.get_edge_attributes(graph, 'flow')
@@ -165,7 +167,7 @@ if __name__ == '__main__':
 
     source = 0
     sink = len(graph.nodes) - 1
-    max_flow_value = edmonds_karp(graph, source, sink)
+    #max_flow_value = edmonds_karp(graph, source, sink)
 
     # Create Matplotlib animation
     fig, ax = plt.subplots()
