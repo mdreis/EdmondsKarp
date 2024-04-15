@@ -135,7 +135,7 @@ def update(num):
     nx.draw_networkx_nodes(graph, pos=pos, nodelist=graph.nodes(), node_color="white", edgecolors="black", ax=ax)
     nx.draw_networkx_labels(graph, pos=pos, labels=dict(zip(graph.nodes(), graph.nodes())), font_color="black")
 
-    curved_edges = [edge for edge in graph.edges() if (reversed(edge) in graph.edges() and edge] # Get list of edges with reversed counterpart
+    curved_edges = [edge for edge in graph.edges() if (reversed(edge) in graph.edges())] # Get list of edges with reversed counterpart
     arc_rad = 0.1
     nx.draw_networkx_edges(graph, pos=pos, ax=ax, edgelist=curved_edges, connectionstyle=f'arc3, rad = {arc_rad}', edge_color="gray") 
     straight_edges = list(set(graph.edges()) - set(curved_edges)) # Get list of edges without reversed counterpart
