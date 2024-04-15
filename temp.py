@@ -3,7 +3,7 @@
 # Created: Monday, April 15th 2024 at 11:47:8                                  #
 # Author: Jonathan Williams                                                    #
 # -----                                                                        #
-# Last Modified: Monday, April 15th 2024 11:47:50                              #
+# Last Modified: Monday, April 15th 2024 12:09:58                              #
 # Modified By: Jonathan Williams                                               #
 ###############################################################################
 
@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import my_networkx as my_nx
 import networkx as nx
 import numpy as np
+
 
 current_step = 1
 
@@ -32,14 +33,13 @@ def create_graph(cap_matrix):
     return graph
 
 
-def bfs(graph, source, sink, parent):
+def bfs(graph: nx.DiGraph, source, sink, parent):
     visited = [False] * len(graph.nodes)
     queue = [source]
     visited[source] = True
 
     while queue:
         u = queue.pop(0)
-
         for v in graph.neighbors(u):
             residual_capacity = graph[u][v]["capacity"] - graph[u][v]["flow"]
             if not visited[v] and residual_capacity > 0:
@@ -51,8 +51,34 @@ def bfs(graph, source, sink, parent):
     return False
 
 
+# int bfs(int s, int t, vector<int>& parent) {
+#     fill(parent.begin(), parent.end(), -1);
+#     parent[s] = -2;
+#     queue<pair<int, int>> q;
+#     q.push({s, INF});
+
+#     while (!q.empty()) {
+#         int cur = q.front().first;
+#         int flow = q.front().second;
+#         q.pop();
+
+#         for (int next : adj[cur]) {
+#             if (parent[next] == -1 && capacity[cur][next]) {
+#                 parent[next] = cur;
+#                 int new_flow = min(flow, capacity[cur][next]);
+#                 if (next == t)
+#                     return new_flow;
+#                 q.push({next, new_flow});
+#             }
+#         }
+#     }
+
+#     return 0;
+# }
+
+
 # Function to calculate the maximum flow using Edmonds-Karp algorithm (BFS based)
-def edmonds_karp(graph, source, sink):
+def edmonds_karp(graph: nx.DiGraph, source, sink):
     # make sure to also update the global variables current_step and path
     global current_step
     global path
@@ -60,6 +86,7 @@ def edmonds_karp(graph, source, sink):
     parent = [-1] * len(graph.nodes)
 
     while bfs(graph, source, sink, parent):
+
         path.append((sink, f"Step {current_step}: Found sink"))
         current_step += 1
         path.append((sink, f"Step {current_step}: Augmenting path found"))
@@ -183,8 +210,6 @@ if __name__ == "__main__":
             "Error: not enough command-line arguments\nUsage: python main.py [capacity matrix]"
         )
 
-    graph = nx.DiGraph()
-
     # Capacity matrix is read from second runtime argument
     cap = np.loadtxt(sys.argv[1])
 
@@ -201,20 +226,20 @@ if __name__ == "__main__":
 
     source = 0
     sink = len(graph.nodes) - 1
-    # max_flow_value = edmonds_karp(graph, source, sink)
+    max_flow_value = edmonds_karp(graph, source, sink)
     # print(max_flow_value)
 
     # Create Matplotlib animation
-    fig, ax = plt.subplots()
-    ani = matplotlib.animation.FuncAnimation(
-        fig,
-        update,
-        frames=range(len(path)),
-        init_func=init,
-        interval=1000,
-        repeat=False,
-    )
-    plt.show()
+    # fig, ax = plt.subplots()
+    # ani = matplotlib.animation.FuncAnimation(
+    #    fig,
+    #    update,
+    #    frames=range(len(path)),
+    #    init_func=init,
+    #    interval=1000,
+#     repeat=False,
+# )
+# plt.show()
 
 # c++ implementation from
 
