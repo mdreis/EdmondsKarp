@@ -114,8 +114,8 @@ def edmonds_karp(graph, source, sink):
         v = sink
         while v != source:
             u = parent[v]
-            graph[u][v]['flow'] += path_flow
-            graph[v][u]['flow'] -= path_flow
+            graph[u][v]['capacity'] += path_flow
+            graph[v][u]['capacity'] -= path_flow
             v = u
 
     return max_flow
@@ -135,7 +135,7 @@ def update(num):
     nx.draw_networkx_nodes(graph, pos=pos, nodelist=graph.nodes(), node_color="white", edgecolors="black", ax=ax)
     nx.draw_networkx_labels(graph, pos=pos, labels=dict(zip(graph.nodes(), graph.nodes())), font_color="black")
 
-    curved_edges = [edge for edge in graph.edges() if reversed(edge) in graph.edges()] # Get list of edges with reversed counterpart
+    curved_edges = [edge for edge in graph.edges() if (reversed(edge) in graph.edges() and edge] # Get list of edges with reversed counterpart
     arc_rad = 0.1
     nx.draw_networkx_edges(graph, pos=pos, ax=ax, edgelist=curved_edges, connectionstyle=f'arc3, rad = {arc_rad}', edge_color="gray") 
     straight_edges = list(set(graph.edges()) - set(curved_edges)) # Get list of edges without reversed counterpart
@@ -148,14 +148,10 @@ def update(num):
     straight_edge_labels = {edge: f'{edge_flows[edge]} / {edge_capacities[edge]}' for edge in straight_edges} # Create list of labels for straight edges
     nx.draw_networkx_edge_labels(graph, pos=pos, ax=ax, edge_labels=straight_edge_labels, rotate=True, font_color="gray")
 
-# Main Function to be executed if this program is run directly
-
-    
-
 # Run the main function as an entry point if this program is the top level program executed
 if __name__ == '__main__':
     if len(sys.argv) != 2: # Exit and print error message if number of arguments provided != 3
-        sys.exit('Error: not enough command-line arguments\nUsage: python main.py [flow matrix] [capacity matrix]')
+        sys.exit('Error: not enough command-line arguments\nUsage: python main.py [capacity matrix]')
 
     graph = nx.DiGraph()
     cap = np.loadtxt(sys.argv[1]) # Capacity matrix is read from second runtime argument
@@ -173,5 +169,5 @@ if __name__ == '__main__':
 
     # Create Matplotlib animation
     fig, ax = plt.subplots()
-    ani = matplotlib.animation.FuncAnimation(fig, update, frames=range(len(path)), init_func=init, repeat=False)
+    ani = matplotlib.animation.FuncAnimation(fig, update, frames=range(len(path)), init_func=init, interval=1000, repeat=False)
     plt.show()
