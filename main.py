@@ -74,11 +74,6 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
             path_flow = min(
                 path_flow, graph[parent[s]][s]["capacity"] - graph[parent[s]][s]["flow"]
             )
-            if temp < 20:
-                print(path_flow)
-                print(graph[parent[s]][s]["capacity"])
-                print(graph[parent[s]][s]["flow"])
-                temp += 1
             s = parent[s]
 
         max_flow += path_flow
@@ -86,7 +81,7 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
         while v != source:
             u = parent[v]
             graph[u][v]["flow"] += path_flow
-            graph[v][u]["capacity"] -= path_flow
+            graph[v][u]["flow"] -= path_flow
             v = u
     return max_flow
 
@@ -107,6 +102,12 @@ def update(num):
 
     # Set title according to corresponding path tuple
     ax.set_title(path[num][1], fontweight="bold")
+    labels = {}
+    for node in graph.nodes():
+        if node != 0 or node != len(graph.nodes) - 1:
+            labels[node] = node
+        labels[0] = "Sink"
+        labels[len(graph.nodes) - 1] = "Source"
 
     nx.draw_networkx_nodes(
         graph,
@@ -119,7 +120,7 @@ def update(num):
     nx.draw_networkx_labels(
         graph,
         pos=pos,
-        labels=dict(zip(graph.nodes(), graph.nodes())),
+        labels=labels,
         font_color="black",
     )
 
@@ -217,7 +218,7 @@ if __name__ == "__main__":
         update,
         frames=range(len(path)),
         init_func=init,
-        interval=1000,
+        interval=5000,
         repeat=False,
     )
     plt.show()
