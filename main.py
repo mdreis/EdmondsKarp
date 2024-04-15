@@ -61,13 +61,13 @@ import numpy as np
 current_step = 1
 path = [(0, 'Step 0: Start')] # List of tuples (node, title), necessary for generating animation
 
-def create_graph(cap_matrix, flow_matrix):
+def create_graph(cap_matrix):
     n = len(cap_matrix)
     graph = nx.DiGraph()
     for i in range(n):
         for j in range(n):
             if cap_matrix[i][j] > 0:
-                graph.add_edge(i, j, capacity=cap_matrix[i][j], flow=flow_matrix[i][j])
+                graph.add_edge(i, j, capacity=cap_matrix[i][j], flow=0)
                 if not graph.has_edge(j, i):
                     graph.add_edge(j, i, capacity=0, flow=0)
     return graph
@@ -154,20 +154,17 @@ def update(num):
 
 # Run the main function as an entry point if this program is the top level program executed
 if __name__ == '__main__':
-    if len(sys.argv) != 3: # Exit and print error message if number of arguments provided != 3
+    if len(sys.argv) != 2: # Exit and print error message if number of arguments provided != 3
         sys.exit('Error: not enough command-line arguments\nUsage: python main.py [flow matrix] [capacity matrix]')
 
     graph = nx.DiGraph()
-    adj = np.loadtxt(sys.argv[1]) # Adjacency matrix is read from first runtime argument
-    cap = np.loadtxt(sys.argv[2]) # Capacity matrix is read from second runtime argument
-    (adj_rows, adj_cols) = adj.shape # Get number of rows and columns (should be the same)
+    cap = np.loadtxt(sys.argv[1]) # Capacity matrix is read from second runtime argument
+    (cap_rows, cap_cols) = cap.shape # Get number of rows and columns (should be the same)
 
-    if adj.shape != cap.shape: # Exit and print error message if adjacency matrix and capacity matrix are not the same dimensions
-        sys.exit('Error: flow matrix and capacity matrix must be the same size')
-    elif adj_rows != adj_cols: # Exit and print error message if adjacency matrix and capacity matrix are not square
+    if cap_rows != cap_cols: # Exit and print error message if adjacency matrix and capacity matrix are not square
         sys.exit('Error: matrices must be square')
 
-    graph = create_graph(cap, adj)
+    graph = create_graph(cap)
     pos = nx.spring_layout(graph) # Set node positions for graph visualization
 
     source = 0
