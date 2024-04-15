@@ -106,8 +106,8 @@ def update(num):
     for node in graph.nodes():
         if node != 0 or node != len(graph.nodes) - 1:
             labels[node] = node
-        labels[0] = "Sink"
-        labels[len(graph.nodes) - 1] = "Source"
+        labels[0] = "Source"
+        labels[len(graph.nodes) - 1] = "Sink"
 
     nx.draw_networkx_nodes(
         graph,
