@@ -102,7 +102,11 @@ def update(num):
     nx.draw_networkx_edge_labels(graph, pos=pos, ax=ax, edge_labels=straight_edge_labels, rotate=True, font_color="gray")
 
 # Main Function to be executed if this program is run directly
-def main():
+
+    
+
+# Run the main function as an entry point if this program is the top level program executed
+if __name__ == '__main__':
     if len(sys.argv) != 3: # Exit and print error message if number of arguments provided != 3
         sys.exit('Error: not enough command-line arguments\nUsage: python main.py [flow matrix] [capacity matrix]')
 
@@ -127,11 +131,6 @@ def main():
         pos = nx.spring_layout(graph) # If unable to use planar layout, use spring layout
 
     max_flow = max_flow(0, graph.number_of_nodes() - 1) # Calculate max flow (first node is always sink, last node is always target)
-
     fig, ax = plt.subplots(figsize=(6, 4)) # Build plot
     ani = matplotlib.animation.FuncAnimation(fig, update, frames=len(path), init_func=init, interval=1000, repeat=True) # Generate animation
     plt.show()
-
-# Run the main function as an entry point if this program is the top level program executed
-if __name__ == '__main__':
-    main()
