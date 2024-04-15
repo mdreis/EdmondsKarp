@@ -61,17 +61,64 @@ import numpy as np
 current_step = 1
 path = [(0, 'Step 0: Start')] # List of tuples (node, title), necessary for generating animation
 
-def bfs(source, sink, parent):
-    return 0
+def create_graph(cap_matrix, flow_matrix):
+    n = len(cap_matrix)
+    graph = nx.DiGraph()
+    for i in range(n):
+        for j in range(n):
+            if cap_matrix[i][j] > 0:
+                graph.add_edge(i, j, capacity=cap_matrix[i][j], flow=flow_matrix[i][j])
+                if not graph.has_edge(j, i):
+                    graph.add_edge(j, i, capacity=0, flow=0)
+    return graph
 
-def max_flow(source, sink):
+def bfs(graph, source, sink, parent):
+    visited = [False] * len(graph.nodes)
+    queue = [source]
+    visited[source] = True
+    
+    while queue:
+        u = queue.pop(0)
+        
+        for v in graph.neighbors(u):
+            residual_capacity = graph[u][v]['capacity'] - graph[u][v]['flow']
+            if not visited[v] and residual_capacity > 0:
+                queue.append(v)
+                visited[v] = True
+                parent[v] = u
+                if v == sink:
+                    return True
+    return False
+
+# Function to calculate the maximum flow using Edmonds-Karp algorithm (BFS based)
+def edmonds_karp(graph, source, sink):
+    #make sure to also update the global variables current_step and path
     global current_step
     global path
-    flow = 0
+    max_flow = 0
+    parent = [-1] * len(graph.nodes)
 
-    current_step += 1
-    path.append((1, f'Step {current_step}: End'))
-    return flow
+    while bfs(graph, source, sink, parent):
+        path.append((sink, f'Step {current_step}: Found sink'))
+        current_step += 1
+        path.append((sink, f'Step {current_step}: Augmenting path found'))
+        current_step += 1
+
+        path_flow = float('inf')
+        s = sink
+        while s != source:
+            path_flow = min(path_flow, graph[parent[s]][s]['capacity'] - graph[parent[s]][s]['flow'])
+            s = parent[s]
+
+        max_flow += path_flow
+        v = sink
+        while v != source:
+            u = parent[v]
+            graph[u][v]['flow'] += path_flow
+            graph[v][u]['flow'] -= path_flow
+            v = u
+
+    return max_flow
 
 # Initializes Matplotlib animation
 def init():
@@ -120,17 +167,14 @@ if __name__ == '__main__':
     elif adj_rows != adj_cols: # Exit and print error message if adjacency matrix and capacity matrix are not square
         sys.exit('Error: matrices must be square')
 
-    graph.add_nodes_from(range(adj_rows)) # Add nodes
-    for x in range(adj_rows):
-        for y in range(adj_cols):
-            if adj[x][y] != 0:
-                graph.add_edge(x, y, flow=int(adj[x][y]), capacity=int(cap[x][y])) # Add edges, flows, and capacities
-    try:
-        pos = nx.planar_layout(graph) # Planar layout = minimized edge overlap
-    except nx.NetworkXException:
-        pos = nx.spring_layout(graph) # If unable to use planar layout, use spring layout
+    graph = create_graph(cap, adj)
+    pos = nx.spring_layout(graph) # Set node positions for graph visualization
 
-    max_flow = max_flow(0, graph.number_of_nodes() - 1) # Calculate max flow (first node is always sink, last node is always target)
-    fig, ax = plt.subplots(figsize=(6, 4)) # Build plot
-    ani = matplotlib.animation.FuncAnimation(fig, update, frames=len(path), init_func=init, interval=1000, repeat=True) # Generate animation
+    source = 0
+    sink = len(graph.nodes) - 1
+    max_flow_value = edmonds_karp(graph, source, sink)
+
+    # Create Matplotlib animation
+    fig, ax = plt.subplots()
+    ani = matplotlib.animation.FuncAnimation(fig, update, frames=range(len(path)), init_func=init, repeat=False)
     plt.show()
