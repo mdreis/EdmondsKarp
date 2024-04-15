@@ -1,0 +1,10 @@
+###
+# File: .gitignore
+# Created: Monday, April 15th 2024 at 10:34:34
+# Author: Jonathan Williams
+###
+
+# Pyhon byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
