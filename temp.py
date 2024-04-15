@@ -3,7 +3,7 @@
 # Created: Monday, April 15th 2024 at 11:47:8                                  #
 # Author: Jonathan Williams                                                    #
 # -----                                                                        #
-# Last Modified: Monday, April 15th 2024 12:09:58                              #
+# Last Modified: Monday, April 15th 2024 17:06:21                              #
 # Modified By: Jonathan Williams                                               #
 ###############################################################################
 
@@ -14,6 +14,7 @@ import my_networkx as my_nx
 import networkx as nx
 import numpy as np
 
+temp = 0
 
 current_step = 1
 
@@ -82,11 +83,11 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
     # make sure to also update the global variables current_step and path
     global current_step
     global path
+    global temp
     max_flow = 0
     parent = [-1] * len(graph.nodes)
 
     while bfs(graph, source, sink, parent):
-
         path.append((sink, f"Step {current_step}: Found sink"))
         current_step += 1
         path.append((sink, f"Step {current_step}: Augmenting path found"))
@@ -98,16 +99,20 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
             path_flow = min(
                 path_flow, graph[parent[s]][s]["capacity"] - graph[parent[s]][s]["flow"]
             )
+            if temp < 20:
+                print(path_flow)
+                print(graph[parent[s]][s]["capacity"])
+                print(graph[parent[s]][s]["flow"])
+                temp += 1
             s = parent[s]
 
         max_flow += path_flow
         v = sink
         while v != source:
             u = parent[v]
-            graph[u][v]["capacity"] += path_flow
+            graph[u][v]["flow"] += path_flow
             graph[v][u]["capacity"] -= path_flow
             v = u
-
     return max_flow
 
 
@@ -151,7 +156,7 @@ def update(num):
     ]
 
     # Get list of edges with reversed counterpart
-    arc_rad = 0.1
+    arc_rad = 0.2
     nx.draw_networkx_edges(
         graph,
         pos=pos,
@@ -227,19 +232,20 @@ if __name__ == "__main__":
     source = 0
     sink = len(graph.nodes) - 1
     max_flow_value = edmonds_karp(graph, source, sink)
-    # print(max_flow_value)
+    print(f"\nMax Flow Ours:  {max_flow_value}")
+    print(f"Max Flow Check: {nx.maximum_flow_value(graph, source, sink)}")
 
     # Create Matplotlib animation
-    # fig, ax = plt.subplots()
-    # ani = matplotlib.animation.FuncAnimation(
-    #    fig,
-    #    update,
-    #    frames=range(len(path)),
-    #    init_func=init,
-    #    interval=1000,
-#     repeat=False,
-# )
-# plt.show()
+    fig, ax = plt.subplots()
+    ani = matplotlib.animation.FuncAnimation(
+        fig,
+        update,
+        frames=range(len(path)),
+        init_func=init,
+        interval=1000,
+        repeat=False,
+    )
+    plt.show()
 
 # c++ implementation from
 
