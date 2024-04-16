@@ -65,8 +65,7 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
     while bfs(graph, source, sink, parent):
         path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Found sink"))
         current_step += 1
-        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Augmenting path found"))
-        current_step += 1
+        
 
         path_flow = float("inf")
         s = sink
@@ -83,6 +82,8 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
             graph[u][v]["flow"] += path_flow
             graph[v][u]["flow"] -= path_flow
             v = u
+        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Augmenting path found"))
+        current_step += 1
     return max_flow
 
 
