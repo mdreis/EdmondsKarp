@@ -7,7 +7,7 @@
 # Last Modified: Monday, April 15th 2024 17:12:55                              #
 # Modified By: Michael Reis                                                    #
 ###############################################################################
-# Consulted https://cp-algorithms.com/graph/edmonds_karp.html#:~:text=Edmonds%2DKarp%20algorithm%20is%20just,independently%20of%20the%20maximal%20flow.
+
 import sys
 import matplotlib.animation
 import matplotlib.pyplot as plt
