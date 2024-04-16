@@ -1,6 +1,6 @@
 ###############################################################################
 # File: main.py                                                                #
-# Authors: Michael Reis, Jonathan Williams !!! ADD OUR NAMES HERE !!!          #
+# Authors: Michael Reis, Jonathan Williams, Cole Sullivan                      #
 # -----                                                                        #
 # !!!! ADD DESCRIPTION OF FILE !!!!!
 # -----                                                                        #
