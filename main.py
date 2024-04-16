@@ -1,26 +1,27 @@
 ###############################################################################
 # File: main.py                                                                #
-# Authors: Jonathan Williams !!! ADD OUR NAMES HERE !!!                        #
+# Authors: Michael Reis, Jonathan Williams !!! ADD OUR NAMES HERE !!!          #
 # -----                                                                        #
 # !!!! ADD DESCRIPTION OF FILE !!!!!
 # -----                                                                        #
 # Last Modified: Monday, April 15th 2024 17:12:55                              #
-# Modified By: Jonathan Williams                                               #
+# Modified By: Michael Reis                                                    #
 ###############################################################################
-
+# Consulted https://cp-algorithms.com/graph/edmonds_karp.html#:~:text=Edmonds%2DKarp%20algorithm%20is%20just,independently%20of%20the%20maximal%20flow.
 import sys
 import matplotlib.animation
 import matplotlib.pyplot as plt
 import my_networkx as my_nx
 import networkx as nx
 import numpy as np
+import os
 
 temp = 0
 
-current_step = 1
+current_step = 0
 
-# List of tuples (node, title), necessary for generating animation
-path = [([], "Step 0: Start")]
+# List of tuples (edges, title), necessary for generating animation
+path = [([], "")]
 
 
 def create_graph(cap_matrix):
@@ -29,28 +30,39 @@ def create_graph(cap_matrix):
     for i in range(n):
         for j in range(n):
             if cap_matrix[i][j] > 0:
-                graph.add_edge(i, j, capacity=cap_matrix[i][j], flow=0)
+                graph.add_edge(i, j, residual_capacity=cap_matrix[i][j], capacity=cap_matrix[i][j], flow=0)
                 if not graph.has_edge(j, i):
-                    graph.add_edge(j, i, capacity=0, flow=0)
+                    graph.add_edge(j, i, residual_capacity = 0, capacity=0, flow=0)
     return graph
 
 
 def bfs(graph: nx.DiGraph, source, sink, parent):
     visited = [False] * len(graph.nodes)
-    queue = [source]
     visited[source] = True
+    global current_step
+    parent[source] = -2
+    queue = [(0, float('inf'))]
+    
 
     while queue:
-        u = queue.pop(0)
-        for v in graph.neighbors(u):
-            residual_capacity = graph[u][v]["capacity"] - graph[u][v]["flow"]
-            if not visited[v] and residual_capacity > 0:
-                queue.append(v)
-                visited[v] = True
-                parent[v] = u
-                if v == sink:
-                    return True
-    return False
+        print(queue)
+        curr, flow = queue.pop(0)
+        
+        for next in graph.neighbors(curr):
+            if graph[curr][next]["residual_capacity"] > 0 and not visited[next]:
+                new_flow = min(flow, graph[curr][next]["residual_capacity"] )
+                visited[next] = True
+                parent[next] = curr
+                graph[curr][next]["flow"] = min(new_flow + graph[curr][next]["flow"], graph[curr][next]["capacity"])
+                graph[next][curr]["flow"] = min(new_flow + graph[next][curr]["flow"], graph[next][curr]["capacity"])
+                path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Updated Edge"))
+                current_step += 1
+                if (next == sink):
+                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Returning"))
+                    current_step += 1
+                    return new_flow
+                queue.append((next, new_flow))
+    return 0
 
 
 # Function to calculate the maximum flow using Edmonds-Karp algorithm (BFS based)
@@ -61,29 +73,21 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
     global temp
     max_flow = 0
     parent = [-1] * len(graph.nodes)
+    path.append((nx.get_edge_attributes(graph, "flow"), "Step 0: Start"))
+    path.pop(0)
+    current_step += 1
 
-    while bfs(graph, source, sink, parent):
-        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Found sink"))
-        current_step += 1
-        
-
-        path_flow = float("inf")
-        s = sink
-        while s != source:
-            path_flow = min(
-                path_flow, graph[parent[s]][s]["capacity"] - graph[parent[s]][s]["flow"]
-            )
-            s = parent[s]
-
-        max_flow += path_flow
-        v = sink
-        while v != source:
-            u = parent[v]
-            graph[u][v]["flow"] += path_flow
-            graph[v][u]["flow"] -= path_flow
-            v = u
+    while (new_flow := bfs(graph, source, sink, parent)):
+        max_flow += new_flow
+        curr = sink
+        while curr != source:
+            prev = parent[curr]
+            graph[prev][curr]["residual_capacity"] -= new_flow
+            graph[curr][prev]["residual_capacity"] += new_flow
+            curr = prev
         path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Augmenting path found"))
         current_step += 1
+
     return max_flow
 
 
@@ -154,14 +158,9 @@ def update(num):
     
 
     # Create list of labels for curved edges
-    if path[num][1] == "Step 0: Start":
-        curved_edge_labels = {
-        edge: f"0 / {edge_capacities[edge]}" for edge in curved_edges
-        }
-    else:
-        curved_edge_labels = {
-            edge: f"{edge_flows[edge]} / {edge_capacities[edge]}" for edge in curved_edges
-        }
+    curved_edge_labels = {
+        edge: f"{edge_flows[edge]} / {edge_capacities[edge]}" for edge in curved_edges
+    }
 
     # Use custom function to draw curved labels
     my_nx.my_draw_networkx_edge_labels(
@@ -175,14 +174,10 @@ def update(num):
     )
 
     # Create list of labels for straight edges
-    if path[num][1] == "Step 0: Start":
-        straight_edge_labels = {
-        edge: f" 0 / {edge_capacities[edge]}" for edge in straight_edges
-        }
-    else:
-        straight_edge_labels = {
-            edge: f"{edge_flows[edge]} / {edge_capacities[edge]}" for edge in straight_edges
-        }
+   
+    straight_edge_labels = {
+        edge: f"{edge_flows[edge]} / {edge_capacities[edge]}" for edge in straight_edges
+    }
    
 
     nx.draw_networkx_edge_labels(
@@ -219,9 +214,9 @@ if __name__ == "__main__":
 
     source = 0
     sink = len(graph.nodes) - 1
+    print(f"Max Flow Check: {nx.maximum_flow_value(graph, source, sink)}")
     max_flow_value = edmonds_karp(graph, source, sink)
     print(f"\nMax Flow Ours:  {max_flow_value}")
-    print(f"Max Flow Check: {nx.maximum_flow_value(graph, source, sink)}")
 
     # Create Matplotlib animation
     fig, ax = plt.subplots()
@@ -230,59 +225,7 @@ if __name__ == "__main__":
         update,
         frames=range(len(path)),
         init_func=init,
-        interval=5000,
+        interval=2000,
         repeat=False,
     )
     plt.show()
-
-# c++ implementation from
-
-# https://cp-algorithms.com/graph/edmonds_karp.html#:~:text=Edmonds%2DKarp%20algorithm%20is%20just,independently%20of%20the%20maximal%20flow.
-
-# int n;
-# vector<vector<int>> capacity;
-# vector<vector<int>> adj;
-
-# int bfs(int s, int t, vector<int>& parent) {
-#     fill(parent.begin(), parent.end(), -1);
-#     parent[s] = -2;
-#     queue<pair<int, int>> q;
-#     q.push({s, INF});
-
-#     while (!q.empty()) {
-#         int cur = q.front().first;
-#         int flow = q.front().second;
-#         q.pop();
-
-#         for (int next : adj[cur]) {
-#             if (parent[next] == -1 && capacity[cur][next]) {
-#                 parent[next] = cur;
-#                 int new_flow = min(flow, capacity[cur][next]);
-#                 if (next == t)
-#                     return new_flow;
-#                 q.push({next, new_flow});
-#             }
-#         }
-#     }
-
-#     return 0;
-# }
-
-# int maxflow(int s, int t) {
-#     int flow = 0;
-#     vector<int> parent(n);
-#     int new_flow;
-
-#     while (new_flow = bfs(s, t, parent)) {
-#         flow += new_flow;
-#         int cur = t;
-#         while (cur != s) {
-#             int prev = parent[cur];
-#             capacity[prev][cur] -= new_flow;
-#             capacity[cur][prev] += new_flow;
-#             cur = prev;
-#         }
-#     }
-
-#     return flow;
-# }
