@@ -20,7 +20,7 @@ temp = 0
 current_step = 1
 
 # List of tuples (node, title), necessary for generating animation
-path = [(0, "Step 0: Start")]
+path = [([], "Step 0: Start")]
 
 
 def create_graph(cap_matrix):
@@ -63,9 +63,9 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
     parent = [-1] * len(graph.nodes)
 
     while bfs(graph, source, sink, parent):
-        path.append((sink, f"Step {current_step}: Found sink"))
+        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Found sink"))
         current_step += 1
-        path.append((sink, f"Step {current_step}: Augmenting path found"))
+        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Augmenting path found"))
         current_step += 1
 
         path_flow = float("inf")
@@ -148,9 +148,9 @@ def update(num):
     nx.draw_networkx_edges(
         graph, pos=pos, ax=ax, edgelist=straight_edges, edge_color="gray"
     )
-
-    edge_flows = nx.get_edge_attributes(graph, "flow")
     edge_capacities = nx.get_edge_attributes(graph, "capacity")
+    edge_flows = path[num][0]
+    
 
     # Create list of labels for curved edges
     if path[num][1] == "Step 0: Start":
