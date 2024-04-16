@@ -153,9 +153,14 @@ def update(num):
     edge_capacities = nx.get_edge_attributes(graph, "capacity")
 
     # Create list of labels for curved edges
-    curved_edge_labels = {
-        edge: f"{edge_flows[edge]} / {edge_capacities[edge]}" for edge in curved_edges
-    }
+    if path[num][1] == "Step 0: Start":
+        curved_edge_labels = {
+        edge: f"0 / {edge_capacities[edge]}" for edge in curved_edges
+        }
+    else:
+        curved_edge_labels = {
+            edge: f"{edge_flows[edge]} / {edge_capacities[edge]}" for edge in curved_edges
+        }
 
     # Use custom function to draw curved labels
     my_nx.my_draw_networkx_edge_labels(
@@ -169,9 +174,15 @@ def update(num):
     )
 
     # Create list of labels for straight edges
-    straight_edge_labels = {
-        edge: f"{edge_flows[edge]} / {edge_capacities[edge]}" for edge in straight_edges
-    }
+    if path[num][1] == "Step 0: Start":
+        straight_edge_labels = {
+        edge: f" 0 / {edge_capacities[edge]}" for edge in straight_edges
+        }
+    else:
+        straight_edge_labels = {
+            edge: f"{edge_flows[edge]} / {edge_capacities[edge]}" for edge in straight_edges
+        }
+   
 
     nx.draw_networkx_edge_labels(
         graph,
