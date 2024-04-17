@@ -328,6 +328,9 @@ if __name__ == "__main__":
 
     # Create Matplotlib animation
     fig, ax = plt.subplots()
+    fig.set_size_inches(10, 7, True)
+    dpi = 100
+    writer = matplotlib.animation.writers['ffmpeg'](fps=0.5)
     ani = matplotlib.animation.FuncAnimation(
         fig,
         update,
@@ -349,7 +352,7 @@ if __name__ == "__main__":
         pass
 
     try:
-        ani.save(file_name, writer="ffmpeg")
+        ani.save(file_name, writer=writer, dpi=dpi)
     except:
         pass
 
