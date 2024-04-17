@@ -8,13 +8,14 @@
 # Modified By: Michael Reis                                                    #
 ###############################################################################
 
+import os
+import re
 import sys
 import matplotlib.animation
 import matplotlib.pyplot as plt
 import my_networkx as my_nx
 import networkx as nx
 import numpy as np
-import os
 
 temp = 0
 
@@ -22,7 +23,6 @@ current_step = 0
 
 # List of tuples (edges, title), necessary for generating animation
 path = [([], "")]
-
 
 
 def create_graph(cap_matrix):
@@ -141,14 +141,14 @@ def update(num):
         graph,
         pos,
         nodelist=[0],
-        node_color="green",
+        node_color="#90ee90",
         edgecolors="black",
     )
     nx.draw_networkx_nodes(
         graph,
         pos,
         nodelist=[len(graph.nodes) - 1],
-        node_color="red",
+        node_color="#ff7f7f",
         edgecolors="black",
     )
 
@@ -179,7 +179,51 @@ def update(num):
     edge_capacities = nx.get_edge_attributes(graph, "capacity")
     edge_flows = path[num][0]
 
-    if "Augmenting path found" in path[num][1]:
+    if "Current flow value is" in path[num][1]:
+        compare = [int(s) for s in path[num][1][path[num][1].rindex(':') + 1:].split() if s.isdigit()]
+        current_edge = (compare[0], compare[1])
+        compare_edge = (compare[2], compare[3])
+
+        if current_edge in curved_edges:
+            nx.draw_networkx_edges(
+                graph,
+                pos=pos,
+                ax=ax,
+                edgelist=[current_edge],
+                connectionstyle=f"arc3, rad = {arc_rad}",
+                edge_color="red",
+                width=2,
+            )
+        else:
+            nx.draw_networkx_edges(
+                graph,
+                pos=pos,
+                ax=ax,
+                edgelist=[current_edge],
+                edge_color="red",
+                width=2,
+            )
+
+        if compare_edge in curved_edges:
+            nx.draw_networkx_edges(
+                graph,
+                pos=pos,
+                ax=ax,
+                edgelist=[compare_edge],
+                connectionstyle=f"arc3, rad = {arc_rad}",
+                edge_color="red",
+                width=2,
+            )
+        else:
+            nx.draw_networkx_edges(
+                graph,
+                pos=pos,
+                ax=ax,
+                edgelist=[compare_edge],
+                edge_color="red",
+                width=2,
+            )
+    elif "Augmenting path found" in path[num][1]: # Highlight augmented path in red
         # Get the previous augmented path
         prev_augmented_path = path[0][0]
         for i in range(num - 1, -1, -1):
@@ -187,25 +231,40 @@ def update(num):
                 prev_augmented_path = path[i][0]
                 break
 
-        # Create a list to store the edges in the augmenting path
-        augmenting_path_edges = []
+        # Create lists to store the straight and curved edges in the augmenting path
+        augmenting_path_straight_edges = []
+        augmenting_path_curved_edges = []
 
         # Iterate over the edges in the current frame
         for edge in edge_flows:
             # If the edge flow has increased compared to the previous augmented path,
             # it is part of the augmenting path
-            if prev_augmented_path is None or edge_flows[edge] > prev_augmented_path.get(edge, 0):
-                augmenting_path_edges.append(edge)
+            if edge_flows[edge] > prev_augmented_path.get(edge, 0):
+                if edge in curved_edges:
+                    augmenting_path_curved_edges.append(edge)
+                else:
+                    augmenting_path_straight_edges.append(edge)
 
-        # Draw the augmenting path edges in red
+        # Draw the straight edges in the augmenting path
         nx.draw_networkx_edges(
             graph,
             pos=pos,
             ax=ax,
-            edgelist=augmenting_path_edges,
+            edgelist=augmenting_path_straight_edges,
             edge_color="red",
             width=2,
-        ) 
+        )
+
+        # Draw the curved edges in the augmenting path
+        nx.draw_networkx_edges(
+            graph,
+            pos=pos,
+            ax=ax,
+            edgelist=augmenting_path_curved_edges,
+            connectionstyle=f"arc3, rad = {arc_rad}",
+            edge_color="red",
+            width=2,
+        )
 
     # Create list of labels for curved edges
     curved_edge_labels = {
@@ -277,12 +336,21 @@ if __name__ == "__main__":
         interval=2000,
         repeat=False,
     )
-    # Save animation as .mp4 if ffmpeg is installed
+
+    file_name = ""
+    if "/" in sys.argv[1]:
+        file_name = f'{sys.argv[1][sys.argv[1].rindex("/") + 1:-4]}.mp4'
+    else:
+        file_name = f'{sys.argv[1][:-4]}.mp4'
+
     try:
-        if "/" in sys.argv[1]:
-            ani.save(f'{sys.argv[1][sys.argv[1].rindex("/") + 1:-4]}.mp4', writer="ffmpeg")
-        else:
-            ani.save(f'{sys.argv[1][:-4]}.mp4', writer="ffmpeg")
+        os.remove(file_name)
+    except OSError:
+        pass
+
+    try:
+        ani.save(file_name, writer="ffmpeg")
     except:
         pass
+
     plt.show()
