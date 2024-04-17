@@ -61,7 +61,10 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                     current_step += 1
                 visited[next] = True
                 parent[next] = curr
-                if (currEdge != curr or nextEdge != next):
+                if graph[curr][next]["residual_capacity"] > flow :
+                    currEdge = curr
+                    nextEdge = next
+                    edgeFlow = new_flow
                     path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}\nEvaluating against residual capacity of {residual_capacity} from {curr} to {next}"))
                     current_step += 1
                 if (next == sink):
