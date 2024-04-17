@@ -181,7 +181,7 @@ def update(num):
 
     if "Augmenting path found" in path[num][1]:
         # Get the previous augmented path
-        prev_augmented_path = None
+        prev_augmented_path = path[0][0]
         for i in range(num - 1, -1, -1):
             if "Augmenting path found" in path[i][1]:
                 prev_augmented_path = path[i][0]
