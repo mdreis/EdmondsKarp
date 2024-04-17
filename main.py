@@ -50,6 +50,7 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
         for next in graph.neighbors(curr):
             if graph[curr][next]["residual_capacity"] > 0 and not visited[next]:
                 new_flow = min(flow, graph[curr][next]["residual_capacity"] )
+                residual_capacity = graph[curr][next]["residual_capacity"]
                 if graph[curr][next]["residual_capacity"] < flow :
                     currEdge = curr
                     nextEdge = next
@@ -59,7 +60,7 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                 visited[next] = True
                 parent[next] = curr
                 if currEdge != curr or nextEdge != next:
-                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}\nEvaluating against capacity of {new_flow} from {curr} to {next}"))
+                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}\nEvaluating against residual capacity of {residual_capacity} from {curr} to {next}"))
                     current_step += 1
                 if (next == sink):
                     curr1 = sink
