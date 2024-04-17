@@ -246,4 +246,12 @@ if __name__ == "__main__":
         interval=2000,
         repeat=False,
     )
+    # Save animation as .mp4 if ffmpeg is installed
+    try:
+        if "/" in sys.argv[1]:
+            ani.save(f'{sys.argv[1][sys.argv[1].rindex("/") + 1:-4]}.mp4', writer="ffmpeg")
+        else:
+            ani.save(f'{sys.argv[1][:-4]}.mp4', writer="ffmpeg")
+    except:
+        pass
     plt.show()
