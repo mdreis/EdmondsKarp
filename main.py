@@ -56,7 +56,7 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                     edgeFlow = new_flow
                 visited[next] = True
                 parent[next] = curr
-                path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}. Evaluated agaisnt flow value of {new_flow} from {curr} to {next}"))
+                path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}\nEvaluating against flow value of {new_flow} from {curr} to {next}"))
                 current_step += 1
                 if (next == sink):
                     curr1 = sink
@@ -178,6 +178,34 @@ def update(num):
     )
     edge_capacities = nx.get_edge_attributes(graph, "capacity")
     edge_flows = path[num][0]
+
+    if "Augmenting path found" in path[num][1]:
+        # Get the previous augmented path
+        prev_augmented_path = None
+        for i in range(num - 1, -1, -1):
+            if "Augmenting path found" in path[i][1]:
+                prev_augmented_path = path[i][0]
+                break
+
+        # Create a list to store the edges in the augmenting path
+        augmenting_path_edges = []
+
+        # Iterate over the edges in the current frame
+        for edge in edge_flows:
+            # If the edge flow has increased compared to the previous augmented path,
+            # it is part of the augmenting path
+            if prev_augmented_path is None or edge_flows[edge] > prev_augmented_path.get(edge, 0):
+                augmenting_path_edges.append(edge)
+
+        # Draw the augmenting path edges in red
+        nx.draw_networkx_edges(
+            graph,
+            pos=pos,
+            ax=ax,
+            edgelist=augmenting_path_edges,
+            edge_color="red",
+            width=2,
+        ) 
 
     # Create list of labels for curved edges
     curved_edge_labels = {
