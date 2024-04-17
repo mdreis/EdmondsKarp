@@ -30,9 +30,9 @@ def create_graph(cap_matrix):
     for i in range(n):
         for j in range(n):
             if cap_matrix[i][j] > 0:
-                graph.add_edge(i, j, residual_capacity=cap_matrix[i][j], capacity=cap_matrix[i][j], down_flow=0, up_flow=0)
+                graph.add_edge(i, j, residual_capacity=cap_matrix[i][j], capacity=cap_matrix[i][j], flow=0)
                 if not graph.has_edge(j, i):
-                    graph.add_edge(j, i, residual_capacity = 0, capacity=0, down_flow=0, up_flow=0)
+                    graph.add_edge(j, i, residual_capacity = 0, capacity=0, flow=0)
     return graph
 
 
@@ -51,14 +51,14 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                 new_flow = min(flow, graph[curr][next]["residual_capacity"] )
                 visited[next] = True
                 parent[next] = curr
-                # graph[curr][next]["flow"] += new_flow
-                # graph[next][curr]["flow"] += new_flow
-                graph[curr][next]["down_flow"] = min(new_flow + graph[curr][next]["down_flow"], graph[curr][next]["capacity"])
-                graph[next][curr]["down_flow"] = min(new_flow + graph[next][curr]["down_flow"], graph[next][curr]["capacity"])
-                path.append((nx.get_edge_attributes(graph, "down_flow"), f"Step {current_step}: Down flow"))
-                current_step += 1
                 if (next == sink):
-                    path.append((nx.get_edge_attributes(graph, "down_flow"), f"Step {current_step}: Returning"))
+                    curr1 = sink
+                    while curr1 != source:
+                        prev = parent[curr1]
+                        graph[prev][curr1]["flow"] += new_flow
+                        graph[curr1][prev]["flow"] -= new_flow
+                        curr1 = prev
+                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Updated Path"))
                     current_step += 1
                     return new_flow
                 queue.append((next, new_flow))
@@ -73,7 +73,7 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
     global temp
     max_flow = 0
     parent = [-1] * len(graph.nodes)
-    path.append((nx.get_edge_attributes(graph, "down_flow"), "Step 0: Start"))
+    path.append((nx.get_edge_attributes(graph, "flow"), "Step 0: Start"))
     path.pop(0)
     current_step += 1
 
@@ -84,12 +84,8 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
             prev = parent[curr]
             graph[prev][curr]["residual_capacity"] -= new_flow
             graph[curr][prev]["residual_capacity"] += new_flow
-            graph[prev][curr]["up_flow"] += new_flow
-            graph[curr][prev]["up_flow"] -= new_flow
-            path.append((nx.get_edge_attributes(graph, "up_flow"), f"Step {current_step}: Up Flow"))
-            current_step += 1
             curr = prev
-        path.append((nx.get_edge_attributes(graph, "up_flow"), f"Step {current_step}: Augmenting path found"))
+        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Augmenting path found"))
         current_step += 1
 
     return max_flow
