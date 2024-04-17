@@ -56,7 +56,7 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                     edgeFlow = new_flow
                 visited[next] = True
                 parent[next] = curr
-                path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}"))
+                path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}. Evaluated agaisnt flow value of {new_flow} from {curr} to {next}"))
                 current_step += 1
                 if (next == sink):
                     curr1 = sink
