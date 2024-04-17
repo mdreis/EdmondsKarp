@@ -69,6 +69,8 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                     current_step += 1
                     return new_flow
                 queue.append((next, new_flow))
+    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: All augmented paths discovered"))
+    current_step += 1
     return 0
 
 
@@ -94,7 +96,8 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
             curr = prev
         path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Augmenting path found"))
         current_step += 1
-
+    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Final Graph, Max Flow is {max_flow}"))
+    current_step += 1
     return max_flow
 
 
