@@ -54,10 +54,13 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                     currEdge = curr
                     nextEdge = next
                     edgeFlow = new_flow
+                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: New Bottleneck is {edgeFlow} from {currEdge} to {nextEdge}"))
+                    current_step += 1
                 visited[next] = True
                 parent[next] = curr
-                path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}\nEvaluating against flow value of {new_flow} from {curr} to {next}"))
-                current_step += 1
+                if currEdge != curr or nextEdge != next:
+                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}\nEvaluating against capacity of {new_flow} from {curr} to {next}"))
+                    current_step += 1
                 if (next == sink):
                     curr1 = sink
                     while curr1 != source:
