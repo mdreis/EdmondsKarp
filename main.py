@@ -24,6 +24,7 @@ current_step = 0
 path = [([], "")]
 
 
+
 def create_graph(cap_matrix):
     n = len(cap_matrix)
     graph = nx.DiGraph()
@@ -109,16 +110,15 @@ def update(num):
     ax.set_title(path[num][1], fontweight="bold")
     labels = {}
     for node in graph.nodes():
-        if node != 0 or node != len(graph.nodes) - 1:
-            labels[node] = node
-        labels[0] = "Source"
-        labels[len(graph.nodes) - 1] = "Sink"
+        labels[node] = node
+    labels[0] = "S"
+    labels[len(graph.nodes) - 1] = "T"
 
     nx.draw_networkx_nodes(
         graph,
         pos=pos,
         nodelist=graph.nodes(),
-        node_color="white",
+        node_color="lightgray",
         edgecolors="black",
         ax=ax,
     )
@@ -127,6 +127,20 @@ def update(num):
         pos=pos,
         labels=labels,
         font_color="black",
+    )
+    nx.draw_networkx_nodes(
+        graph,
+        pos,
+        nodelist=[0],
+        node_color="green",
+        edgecolors="black",
+    )
+    nx.draw_networkx_nodes(
+        graph,
+        pos,
+        nodelist=[len(graph.nodes) - 1],
+        node_color="red",
+        edgecolors="black",
     )
 
     non_zero_capacity_edges = [
@@ -155,7 +169,6 @@ def update(num):
     )
     edge_capacities = nx.get_edge_attributes(graph, "capacity")
     edge_flows = path[num][0]
-    
 
     # Create list of labels for curved edges
     curved_edge_labels = {
@@ -174,11 +187,10 @@ def update(num):
     )
 
     # Create list of labels for straight edges
-   
+
     straight_edge_labels = {
         edge: f"{edge_flows[edge]} / {edge_capacities[edge]}" for edge in straight_edges
     }
-   
 
     nx.draw_networkx_edge_labels(
         graph,
