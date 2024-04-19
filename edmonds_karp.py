@@ -75,15 +75,31 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                     currEdge = curr
                     nextEdge = next
                     edgeFlow = new_flow
-                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {tempCurr} to {tempNext}\nEvaluating against residual capacity of {residual_capacity} from {currEdge} to {nextEdge}"))
-                    current_step += 1
+                    if curr == 0:
+                        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from S( {tempCurr} ) to S( {tempNext} )\nEvaluating against residual capacity of {residual_capacity} from {currEdge} to {nextEdge}"))
+                        current_step += 1
+                    elif next == len(graph.nodes) - 1:
+                        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {tempCurr} to {tempNext}\nEvaluating against residual capacity of {residual_capacity} from {currEdge} to T( {nextEdge} )"))
+                        current_step += 1
+                    else:
+                        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {tempCurr} to {tempNext}\nEvaluating against residual capacity of {residual_capacity} from {currEdge} to {nextEdge}"))
+                        current_step += 1 
+                    # path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {tempCurr} to {tempNext}\nEvaluating against residual capacity of {residual_capacity} from {currEdge} to {nextEdge}"))
+                    # current_step += 1 
                     # path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: New Bottleneck is {edgeFlow} from {currEdge} to {nextEdge}"))
                     # current_step += 1
                 visited[next] = True
                 parent[next] = curr
                 if graph[curr][next]["residual_capacity"] > flow:
-                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {parent[curr]} to {curr}\nEvaluating against residual capacity of {residual_capacity} from {curr} to {next}"))
-                    current_step += 1
+                    if curr == 0:
+                        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from S( {parent[curr]} ) to S( {curr} )\nEvaluating against residual capacity of {residual_capacity} from {curr} to {next}"))
+                        current_step += 1
+                    elif next == len(graph.nodes) - 1:
+                        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {parent[curr]} to {curr}\nEvaluating against residual capacity of {residual_capacity} from {curr} to T( {next} )"))
+                        current_step += 1
+                    else:
+                        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {parent[curr]} to {curr}\nEvaluating against residual capacity of {residual_capacity} from {curr} to {next}"))
+                        current_step += 1   
                 if (next == sink):
                     curr1 = sink
                     while curr1 != source:
@@ -91,7 +107,9 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                         graph[prev][curr1]["flow"] += new_flow
                         graph[curr1][prev]["flow"] -= new_flow
                         curr1 = prev
-                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Update Path with Flow of {new_flow}"))
+                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Update Graph with Flow of {new_flow}"))
+                    current_step += 1
+                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Augmenting path found"))
                     current_step += 1
                     return new_flow
                 queue.append((next, new_flow))
@@ -130,8 +148,6 @@ def edmonds_karp(graph: nx.DiGraph, source, sink):
             graph[prev][curr]["residual_capacity"] -= new_flow
             graph[curr][prev]["residual_capacity"] += new_flow
             curr = prev
-        path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Augmenting path found"))
-        current_step += 1
     path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Final Graph, Max Flow is {max_flow}"))
     current_step += 1
     return max_flow
