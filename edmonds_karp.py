@@ -24,6 +24,10 @@ current_step = 0
 # List of tuples (edges, title), necessary for generating animation
 path = [([], "")]
 
+currEdge = -1
+nextEdge = -1
+edgeFlow = -1
+
 
 def create_graph(cap_matrix):
     n = len(cap_matrix)
@@ -42,32 +46,43 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
     visited[source] = True
     global current_step
     parent[source] = -2
+    parentBottleneck = [-1] * len(graph.nodes)
+    prevBottle =[(int, int)]
     queue = [(0, float('inf'))]
+    global edgeFlow
+    global currEdge
+    global nextEdge
     
 
     while queue:
         curr, flow = queue.pop(0)
         for next in graph.neighbors(curr):
+            residual_capacity = graph[curr][next]["residual_capacity"]
             if graph[curr][next]["residual_capacity"] > 0 and not visited[next]:
                 new_flow = min(flow, graph[curr][next]["residual_capacity"])
                 residual_capacity = graph[curr][next]["residual_capacity"]
-                if graph[curr][next]["residual_capacity"] < flow :
+                if graph[curr][next]["residual_capacity"] <= flow :
+                    # parentBottleneck[curr] = currEdge
+                    prevBottle.append((currEdge, nextEdge))
+                    if parent[curr] > -1:
+                        tempCurr = parent[curr]
+                        tempNext = curr
+                        tempFlow = edgeFlow
+                    else:
+                        tempCurr = curr
+                        tempNext = curr
+                        tempFlow = flow
                     currEdge = curr
                     nextEdge = next
                     edgeFlow = new_flow
-                    if parent[curr] > -1:
-                        tempCurr = parent[curr]
-                    else:
-                        tempCurr = curr
-                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {tempCurr} to {curr}\nEvaluating against residual capacity of {residual_capacity} from {currEdge} to {nextEdge}"))
+                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {tempCurr} to {tempNext}\nEvaluating against residual capacity of {residual_capacity} from {currEdge} to {nextEdge}"))
                     current_step += 1
-                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: New Bottleneck is {edgeFlow} from {currEdge} to {nextEdge}"))
-                    current_step += 1
+                    # path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: New Bottleneck is {edgeFlow} from {currEdge} to {nextEdge}"))
+                    # current_step += 1
                 visited[next] = True
                 parent[next] = curr
-                if graph[curr][next]["residual_capacity"] > flow :
-                    edgeFlow = new_flow
-                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}\nEvaluating against residual capacity of {residual_capacity} from {curr} to {next}"))
+                if graph[curr][next]["residual_capacity"] > flow:
+                    path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {parent[curr]} to {curr}\nEvaluating against residual capacity of {residual_capacity} from {curr} to {next}"))
                     current_step += 1
                 if (next == sink):
                     curr1 = sink
@@ -80,6 +95,16 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                     current_step += 1
                     return new_flow
                 queue.append((next, new_flow))
+            # elif graph[curr][next]["residual_capacity"] == 0 and not visited[next] and graph[curr][next]["capacity"] != 0:
+            #     residual_capacity = graph[curr][next]["residual_capacity"]
+            #     path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}\nEvaluating against residual capacity of {residual_capacity} from {curr} to {next}\nNo remaining capacity along current path"))
+            #     current_step += 1
+            #     if parent[currEdge] > -1:
+            #         edgeFlow = graph[parent[currEdge]][currEdge]["residual_capacity"]
+            #         nextEdge = prevBottle.pop()[1]
+            #         currEdge = prevBottle.pop()[0]
+            #         path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: New Bottleneck is {edgeFlow} from {currEdge} to {nextEdge}"))
+            #         current_step += 1
     path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: All augmented paths discovered"))
     current_step += 1
     return 0
@@ -190,6 +215,29 @@ def update(num):
     edge_capacities = nx.get_edge_attributes(graph, "capacity")
     edge_flows = path[num][0]
 
+    if "New Bottleneck is" in path[num][1]: # Highlight edges being compared in green and red
+        compare = [int(s) for s in path[num][1][path[num][1].rindex(':') + 1:].split() if s.isdigit()]
+        bottleneck_edge = (compare[0], compare[1])
+
+        if bottleneck_edge in curved_edges:
+            nx.draw_networkx_edges(
+                graph,
+                pos=pos,
+                ax=ax,
+                edgelist=[bottleneck_edge],
+                connectionstyle=f"arc3, rad = {arc_rad}",
+                edge_color="#90ee90",
+                width=2,
+            )
+        else:
+            nx.draw_networkx_edges(
+                graph,
+                pos=pos,
+                ax=ax,
+                edgelist=[bottleneck_edge],
+                edge_color="#90ee90",
+                width=2,
+            )
     if "Current flow value is" in path[num][1]: # Highlight edges being compared in green and red
         compare = [int(s) for s in path[num][1][path[num][1].rindex(':') + 1:].split() if s.isdigit()]
         current_edge = (compare[0], compare[1])
