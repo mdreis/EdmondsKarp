@@ -215,29 +215,7 @@ def update(num):
     edge_capacities = nx.get_edge_attributes(graph, "capacity")
     edge_flows = path[num][0]
 
-    if "New Bottleneck is" in path[num][1]: # Highlight edges being compared in green and red
-        compare = [int(s) for s in path[num][1][path[num][1].rindex(':') + 1:].split() if s.isdigit()]
-        bottleneck_edge = (compare[0], compare[1])
-
-        if bottleneck_edge in curved_edges:
-            nx.draw_networkx_edges(
-                graph,
-                pos=pos,
-                ax=ax,
-                edgelist=[bottleneck_edge],
-                connectionstyle=f"arc3, rad = {arc_rad}",
-                edge_color="#90ee90",
-                width=2,
-            )
-        else:
-            nx.draw_networkx_edges(
-                graph,
-                pos=pos,
-                ax=ax,
-                edgelist=[bottleneck_edge],
-                edge_color="#90ee90",
-                width=2,
-            )
+    
     if "Current flow value is" in path[num][1]: # Highlight edges being compared in green and red
         compare = [int(s) for s in path[num][1][path[num][1].rindex(':') + 1:].split() if s.isdigit()]
         current_edge = (compare[0], compare[1])
