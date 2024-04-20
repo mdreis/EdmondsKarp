@@ -55,6 +55,7 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
     
 
     while queue:
+        print(queue)
         curr, flow = queue.pop(0)
         for next in graph.neighbors(curr):
             residual_capacity = graph[curr][next]["residual_capacity"]
@@ -84,10 +85,6 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                     else:
                         path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {tempCurr} to {tempNext}\nEvaluating against residual capacity of {residual_capacity} from {currEdge} to {nextEdge}"))
                         current_step += 1 
-                    # path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {flow} from {tempCurr} to {tempNext}\nEvaluating against residual capacity of {residual_capacity} from {currEdge} to {nextEdge}"))
-                    # current_step += 1 
-                    # path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: New Bottleneck is {edgeFlow} from {currEdge} to {nextEdge}"))
-                    # current_step += 1
                 visited[next] = True
                 parent[next] = curr
                 if graph[curr][next]["residual_capacity"] > flow:
@@ -111,18 +108,10 @@ def bfs(graph: nx.DiGraph, source, sink, parent):
                     current_step += 1
                     path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Augmenting path found"))
                     current_step += 1
+                    
                     return new_flow
+                print(next)
                 queue.append((next, new_flow))
-            # elif graph[curr][next]["residual_capacity"] == 0 and not visited[next] and graph[curr][next]["capacity"] != 0:
-            #     residual_capacity = graph[curr][next]["residual_capacity"]
-            #     path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: Current flow value is {edgeFlow} from {currEdge} to {nextEdge}\nEvaluating against residual capacity of {residual_capacity} from {curr} to {next}\nNo remaining capacity along current path"))
-            #     current_step += 1
-            #     if parent[currEdge] > -1:
-            #         edgeFlow = graph[parent[currEdge]][currEdge]["residual_capacity"]
-            #         nextEdge = prevBottle.pop()[1]
-            #         currEdge = prevBottle.pop()[0]
-            #         path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: New Bottleneck is {edgeFlow} from {currEdge} to {nextEdge}"))
-            #         current_step += 1
     path.append((nx.get_edge_attributes(graph, "flow"), f"Step {current_step}: All augmented paths discovered"))
     current_step += 1
     return 0
