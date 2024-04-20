@@ -5,8 +5,8 @@
 # Calculates the maximum flow in a flow network and depicts the process in     #
 # an animation                                                                 #
 # -----                                                                        #
-# Last Modified: Wednesday, April 17th 2024 02:55:00                           #
-# Modified By: Cole Sullivan                                                   #
+# Last Modified: Wednesday, April 19th 2024 11:50:00                           #
+# Modified By: Michael Reis                                                    #
 ###############################################################################
 
 import os
